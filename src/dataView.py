@@ -4,10 +4,12 @@ from matplotlib.ticker import LinearLocator
 import numpy as np
 from os import listdir
 from os.path import isfile, join
-from mathgl import *
-from PyQt4 import QtGui,QtCore
 
 import csv
+
+allData = []
+allDataName = []
+allDataZero = []
 
 def loadAllData():
     onlyFiles = [f for f in listdir("./logging") if isfile(join("./logging", f))]
@@ -16,21 +18,37 @@ def loadAllData():
         with open('logging/' + file, newline='') as csvfile:
             csvReader = csv.reader(csvfile, delimiter=' ', quotechar='|')
 
+            currentData = []
+            firstRow = True
+
             for row in csvReader:
                 a = np.matrix(row[1:])
                 a = a.astype(float)
                 b = np.reshape(a, (4, 7))
-                print(b)
-                plt.imshow(b)
-                plt.colorbar()
-                plt.show()
-                plotSomething(b)
-                break
+
+                if firstRow:
+                    allDataZero.append(b)
+                    firstRow = False
+
+                currentData.append(b)
+
+            allDataName.append(file)
+            allData.append(currentData)
 
 
+def zeroAllData(zero, leData):
+    test = np.array(zero)
+    test = np.mean(test, axis=0)
 
-        break
+    data = []
+    for i in range(len(leData)):
+        d = np.array(leData[i])
+        a = np.array(zero[i])
+        d = d - a
+        data.append(d)
 
+
+    return test, data
 
 
 def plotSomething(matrix):
@@ -45,17 +63,12 @@ def plotSomething(matrix):
     surf = ax.plot_surface(X, Y, matrix, cmap=cm.coolwarm,
                            linewidth=0, antialiased=False)
 
-    # Customize the z axis.
-    #ax.set_zlim(-1.01, 1.01)
-    #ax.zaxis.set_major_locator(LinearLocator(10))
-    # A StrMethodFormatter is used automatically
-    #ax.zaxis.set_major_formatter('{x:.02f}')
-
-    # Add a color bar which maps values to colors.
-    #fig.colorbar(surf, shrink=0.5, aspect=5)
 
     plt.show()
 
 
 if __name__ == '__main__':
     loadAllData()
+    t, d = zeroAllData(allDataZero, allData)
+
+    pass
